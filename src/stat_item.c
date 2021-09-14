@@ -54,20 +54,105 @@
  */
 
 /* Struct overview:
- * Each osmo_stat_item is attached to an osmo_stat_item_group, which is
- * attached to the global osmo_stat_item_groups list.
  *
- *                       osmo_stat_item_groups
- *                           /           \
- *                        group1        group2
- *                       /      \
- *                    item1    item2
- *                      |
- *                   values
- *                  /      \
- *                 1        2
- *                 |-id     |-id
- *                 '-value  '-value
+ * Group and item descriptions:
+ * Each group description exists once as osmo_stat_item_group_desc,
+ * each such group description lists N osmo_stat_item_desc, i.e. describes N stat items.
+ *
+ * Actual stats:
+ * The global osmo_stat_item_groups llist contains all group instances, each points at a group description.
+ * This list mixes all types of groups in a single llist, where each instance points at its group desc and has an index.
+ * There are one or more instances of each group, each storing stats for a distinct object (for example, one description
+ * for a BTS group, and any number of BTS instances with independent stats). A group is identified by a group index nr
+ * and possibly also a given name for that particular index (e.g. in osmo-mgw, a group instance is named
+ * "virtual-trunk-0" and can be looked up by that name instead of its more or less arbitrary group index number).
+ *
+ * Each group instance contains one osmo_stat_item instance per global stat item description.
+ * Each osmo_stat_item keeps track of the values for the current reporting period (min, last, max, sum, n),
+ * and also stores the set of values reported at the end of the previous reporting period.
+ *
+ *  const osmo_stat_item_group_desc foo
+ *                                   +-- group_name_prefix = "foo"
+ *                                   +-- item_desc[] (array of osmo_stat_item_desc)
+ *                                        +-- osmo_stat_item_desc bar
+ *                                        |    +-- name = "bar"
+ *                                        |    +-- description
+ *                                        |    +-- unit
+ *                                        |    +-- default_value
+ *                                        |
+ *                                        +-- osmo_stat_item_desc: baz
+ *                                             +-- ...
+ *
+ *  const osmo_stat_item_group_desc moo
+ *                                   +-- group_name_prefix = "moo"
+ *                                   +-- item_desc[]
+ *                                        +-- osmo_stat_item_desc goo
+ *                                        |    +-- name = "goo"
+ *                                        |    +-- description
+ *                                        |    +-- unit
+ *                                        |    +-- default_value
+ *                                        |
+ *                                        +-- osmo_stat_item_desc: loo
+ *                                             +-- ...
+ *
+ *  osmo_stat_item_groups (llist of osmo_stat_item_group)
+ *   |
+ *   +-- group: foo[0]
+ *   |    +-- desc --> osmo_stat_item_group_desc foo
+ *   |    +-- idx = 0
+ *   |    +-- name = NULL (no given name for this group instance)
+ *   |    +-- items[]
+ *   |         |
+ *   |        [0] --> osmo_stat_item instance for "bar"
+ *   |         |       +-- desc --> osmo_stat_item_desc bar (see above)
+ *   |         |       +-- value.{min, last, max, n, sum}
+ *   |         |       +-- reported.{min, last, max, n, sum}
+ *   |         |
+ *   |        [1] --> osmo_stat_item instance for "baz"
+ *   |         |       +-- desc --> osmo_stat_item_desc baz
+ *   |         |       +-- value.{min, last, max, n, sum}
+ *   |         |       +-- reported.{min, last, max, n, sum}
+ *   |         .
+ *   |         :
+ *   |
+ *   +-- group: foo[1]
+ *   |    +-- desc --> osmo_stat_item_group_desc foo
+ *   |    +-- idx = 1
+ *   |    +-- name = "special-foo" (instance can be looked up by this index-name)
+ *   |    +-- items[]
+ *   |         |
+ *   |        [0] --> osmo_stat_item instance for "bar"
+ *   |         |       +-- desc --> osmo_stat_item_desc bar
+ *   |         |       +-- value.{min, last, max, n, sum}
+ *   |         |       +-- reported.{min, last, max, n, sum}
+ *   |         |
+ *   |        [1] --> osmo_stat_item instance for "baz"
+ *   |         |       +-- desc --> osmo_stat_item_desc baz
+ *   |         |       +-- value.{min, last, max, n, sum}
+ *   |         |       +-- reported.{min, last, max, n, sum}
+ *   |         .
+ *   |         :
+ *   |
+ *   +-- group: moo[0]
+ *   |    +-- desc --> osmo_stat_item_group_desc moo
+ *   |    +-- idx = 0
+ *   |    +-- name = NULL
+ *   |    +-- items[]
+ *   |         |
+ *   |        [0] --> osmo_stat_item instance for "goo"
+ *   |         |       +-- desc --> osmo_stat_item_desc goo
+ *   |         |       +-- value.{min, last, max, n, sum}
+ *   |         |       +-- reported.{min, last, max, n, sum}
+ *   |         |
+ *   |        [1] --> osmo_stat_item instance for "loo"
+ *   |         |       +-- desc --> osmo_stat_item_desc loo
+ *   |         |       +-- value.{min, last, max, n, sum}
+ *   |         |       +-- reported.{min, last, max, n, sum}
+ *   |         .
+ *   |         :
+ *   .
+ *   :
+ *
  */
 
 #include <stdint.h>
@@ -98,9 +183,8 @@ struct osmo_stat_item_group *osmo_stat_item_group_alloc(void *ctx,
 					    unsigned int idx)
 {
 	unsigned int group_size;
-	unsigned long items_size = 0;
 	unsigned int item_idx;
-	void *items;
+	struct osmo_stat_item *items;
 
 	struct osmo_stat_item_group *group;
 
@@ -117,46 +201,25 @@ struct osmo_stat_item_group *osmo_stat_item_group_alloc(void *ctx,
 	group->desc = group_desc;
 	group->idx = idx;
 
-	/* Get combined size of all items */
+	items = talloc_array(group, struct osmo_stat_item, group_desc->num_items);
+	OSMO_ASSERT(items);
 	for (item_idx = 0; item_idx < group_desc->num_items; item_idx++) {
-		unsigned int size;
-		size = sizeof(struct osmo_stat_item) +
-			sizeof(struct osmo_stat_item_value) *
-			group_desc->item_desc[item_idx].num_values;
-		/* Align to pointer size */
-		size = (size + sizeof(void *) - 1) & ~(sizeof(void *) - 1);
-
-		/* Store offsets into the item array */
-		group->items[item_idx] = (void *)items_size;
-
-		items_size += size;
-	}
-
-	items = talloc_zero_size(group, items_size);
-	if (!items) {
-		talloc_free(group);
-		return NULL;
-	}
-
-	/* Update item pointers */
-	for (item_idx = 0; item_idx < group_desc->num_items; item_idx++) {
-		struct osmo_stat_item *item = (struct osmo_stat_item *)
-			((uint8_t *)items + (unsigned long)group->items[item_idx]);
-		unsigned int i;
-
+		struct osmo_stat_item *item = &items[item_idx];
+		const struct osmo_stat_item_desc *item_desc = &group_desc->item_desc[item_idx];
 		group->items[item_idx] = item;
-		item->last_offs = group_desc->item_desc[item_idx].num_values - 1;
-		item->stats_next_id = 1;
-		item->desc = &group_desc->item_desc[item_idx];
-
-		for (i = 0; i <= item->last_offs; i++) {
-			item->values[i].value = group_desc->item_desc[item_idx].default_value;
-			item->values[i].id = OSMO_STAT_ITEM_NOVALUE_ID;
-		}
+		*item = (struct osmo_stat_item){
+			.desc = item_desc,
+			.value = {
+				.n = 0,
+				.last = item_desc->default_value,
+				.min = item_desc->default_value,
+				.max = item_desc->default_value,
+				.sum = 0,
+			},
+		};
 	}
 
 	llist_add(&group->list, &osmo_stat_item_groups);
-
 	return group;
 }
 
@@ -195,8 +258,7 @@ void osmo_stat_item_group_set_name(struct osmo_stat_item_group *statg, const cha
  */
 void osmo_stat_item_inc(struct osmo_stat_item *item, int32_t value)
 {
-	int32_t oldvalue = item->values[item->last_offs].value;
-	osmo_stat_item_set(item, oldvalue + value);
+	osmo_stat_item_set(item, item->value.last + value);
 }
 
 /*! Descrease the stat_item to the given value.
@@ -207,8 +269,7 @@ void osmo_stat_item_inc(struct osmo_stat_item *item, int32_t value)
  */
 void osmo_stat_item_dec(struct osmo_stat_item *item, int32_t value)
 {
-	int32_t oldvalue = item->values[item->last_offs].value;
-	osmo_stat_item_set(item, oldvalue - value);
+	osmo_stat_item_set(item, item->value.last - value);
 }
 
 /*! Set the a given stat_item to the given value.
@@ -219,16 +280,19 @@ void osmo_stat_item_dec(struct osmo_stat_item *item, int32_t value)
  */
 void osmo_stat_item_set(struct osmo_stat_item *item, int32_t value)
 {
-	int32_t id = item->values[item->last_offs].id + 1;
-	if (id == OSMO_STAT_ITEM_NOVALUE_ID)
-		id++;
-
-	item->last_offs += 1;
-	if (item->last_offs >= item->desc->num_values)
-		item->last_offs = 0;
-
-	item->values[item->last_offs].value = value;
-	item->values[item->last_offs].id    = id;
+	item->value.last = value;
+	if (item->value.n == 0) {
+		/* No values recorded yet, clamp min and max to this first value. */
+		item->value.min = item->value.max = value;
+		/* Overwrite any cruft remaining in value.sum */
+		item->value.sum = value;
+		item->value.n = 1;
+	} else {
+		item->value.min = OSMO_MIN(item->value.min, value);
+		item->value.max = OSMO_MAX(item->value.max, value);
+		item->value.sum += value;
+		item->value.n++;
+	}
 }
 
 /*! Retrieve a stat item struct.
@@ -282,51 +346,34 @@ struct osmo_stat_item *osmo_stat_item_get_using_idxname(const char *group_name, 
 int osmo_stat_item_get_next(const struct osmo_stat_item *item, int32_t *next_id,
 	int32_t *value)
 {
-	const struct osmo_stat_item_value *next_value;
-	const struct osmo_stat_item_value *item_value = NULL;
-	int id_delta;
-	int next_offs;
+	if (value)
+		*value = item->value.last;
+	return item->value.n;
+}
 
-	next_offs = item->last_offs;
-	next_value = &item->values[next_offs];
+/*! Indicate that a reporting period has elapsed, and prepare the stat item for a new period of collecting min/max/avg.
+ * \param item  Stat item to flush.
+ */
+void osmo_stat_item_flush(struct osmo_stat_item *item)
+{
+	item->reported = item->value;
 
-	while (next_value->id - *next_id >= 0 &&
-		next_value->id != OSMO_STAT_ITEM_NOVALUE_ID)
-	{
-		item_value = next_value;
+	/* Indicate a new reporting period: no values have been received, but the previous value.last remains unchanged
+	 * for the case that an entire period elapses without a new value appearing. */
+	item->value.n = 0;
+	item->value.sum = 0;
 
-		next_offs -= 1;
-		if (next_offs < 0)
-			next_offs = item->desc->num_values - 1;
-		if (next_offs == item->last_offs)
-			break;
-		next_value = &item->values[next_offs];
-	}
-
-	if (!item_value)
-		/* All items have been read */
-		return 0;
-
-	*value = item_value->value;
-
-	id_delta = item_value->id + 1 - *next_id;
-
-	*next_id = item_value->id + 1;
-
-	if (id_delta > 1) {
-		LOGP(DLSTATS, LOGL_ERROR, "%s: %d stats values skipped\n", item->desc->name, id_delta - 1);
-	}
-
-	return id_delta;
+	/* Also for the case that an entire period elapses without any osmo_stat_item_set(), put the min and max to the
+	 * last value. As soon as one osmo_stat_item_set() occurs, these are both set to the new value (when n is still
+	 * zero from above). */
+	item->value.min = item->value.max = item->value.last;
 }
 
 /*! Skip/discard all values of this item and update \a next_id accordingly */
 int osmo_stat_item_discard(const struct osmo_stat_item *item, int32_t *next_id)
 {
-	int discarded = item->values[item->last_offs].id + 1 - *next_id;
-	*next_id = item->values[item->last_offs].id + 1;
-
-	return discarded;
+	LOGP(DLSTATS, LOGL_ERROR, "osmo_stat_item_discard is deprecated (no-op)\n");
+	return 0;
 }
 
 /*! Skip all values of all items and update \a next_id accordingly */
@@ -453,15 +500,9 @@ int osmo_stat_item_for_each_group(osmo_stat_item_group_handler_t handle_group, v
  */
 void osmo_stat_item_reset(struct osmo_stat_item *item)
 {
-	unsigned int i;
-
-	item->last_offs = item->desc->num_values - 1;
-	item->stats_next_id = 1;
-
-	for (i = 0; i <= item->last_offs; i++) {
-		item->values[i].value = item->desc->default_value;
-		item->values[i].id = OSMO_STAT_ITEM_NOVALUE_ID;
-	}
+	item->value.sum = 0;
+	item->value.n = 0;
+	item->value.last = item->value.min = item->value.max = item->desc->default_value;
 }
 
 /*! Reset all osmo stat items in a group

@@ -14,28 +14,43 @@ struct osmo_stat_item_desc;
 #define OSMO_STAT_ITEM_NOVALUE_ID 0
 #define OSMO_STAT_ITEM_NO_UNIT NULL
 
-/*! Individual entry in value FIFO */
+/*! DEPRECATED, kept only for backwards API compatibility. */
 struct osmo_stat_item_value {
 	int32_t id;		/*!< identifier of value */
 	int32_t value;		/*!< actual value */
+};
+
+struct osmo_stat_item_period {
+	/* Number of osmo_stat_item_set() that occured during the reporting period, zero if none. */
+	uint32_t n;
+	/* Smallest value seen in a reporting period. */
+	int32_t min;
+	/* Most recent value passed to osmo_stat_item_set(), or the item->desc->default_value if none. */
+	int32_t last;
+	/* Largest value seen in a reporting period. */
+	int32_t max;
+	/* Sum of all values passed to osmo_stat_item_set() in the reporting period. */
+	int64_t sum;
 };
 
 /*! data we keep for each actual item */
 struct osmo_stat_item {
 	/*! back-reference to the item description */
 	const struct osmo_stat_item_desc *desc;
-	/* internal use by stats API (stats.c): the id of the next value to
-	 * be read from the FIFO. If accessing osmo_stat_item directly, without
-	 * the stats API, store this value elsewhere. */
-	int32_t stats_next_id;
-	/* internal use by stats API: indicate if the last value sent to
-	 * reporters was actually the last value in the FIFO. This may not be
-	 * the case, as always a max of 1 or more values gets sent (OS#5215) */
-	bool stats_last_sent_was_max;
-	/*! the index of the last value written to the FIFO */
-	int16_t last_offs;
-	/*! value FIFO */
-	struct osmo_stat_item_value values[0];
+
+	/*! DEPRECATED, kept only for backwards API compatibility. */
+	int32_t not_stats_next_id;
+	/*! DEPRECATED, kept only for backwards API compatibility. */
+	int16_t not_last_offs;
+	/*! DEPRECATED, kept only for backwards API compatibility. */
+	struct osmo_stat_item_value not_values[0];
+
+	/* Current reporting period / current value. */
+	struct osmo_stat_item_period value;
+
+	/* The results of the previous reporting period. According to these, the stats reporter decides whether to
+	 * re-send values or omit an unchanged value from a report. */
+	struct osmo_stat_item_period reported;
 };
 
 /*! Statistics item description */
@@ -43,7 +58,7 @@ struct osmo_stat_item_desc {
 	const char *name;	/*!< name of the item */
 	const char *description;/*!< description of the item */
 	const char *unit;	/*!< unit of a value */
-	unsigned int num_values;/*!< number of values to store in FIFO */
+	unsigned int num_values;/*!< DEPRECATED, this value is ignored after libosmocore version 1.5.1 */
 	int32_t default_value;	/*!< default value */
 };
 
@@ -106,12 +121,13 @@ struct osmo_stat_item_group *osmo_stat_item_get_group_by_name_idxname(const char
 const struct osmo_stat_item *osmo_stat_item_get_by_name(
 	const struct osmo_stat_item_group *statg, const char *name);
 
-int osmo_stat_item_get_next(const struct osmo_stat_item *item, int32_t *next_id, int32_t *value);
+int osmo_stat_item_get_next(const struct osmo_stat_item *item, int32_t *next_id, int32_t *value)
+	OSMO_DEPRECATED("Access item->value.last, item->value.min, item->value.max or osmo_stat_item_get_avg() instead");
 
-/*! Get the last (freshest) value */
-static int32_t osmo_stat_item_get_last(const struct osmo_stat_item *item);
+void osmo_stat_item_flush(struct osmo_stat_item *item);
 
-int osmo_stat_item_discard(const struct osmo_stat_item *item, int32_t *next_id);
+int osmo_stat_item_discard(const struct osmo_stat_item *item, int32_t *next_id)
+	OSMO_DEPRECATED("Use osmo_stat_item_flush() instead");
 
 int osmo_stat_item_discard_all(int32_t *next_id)
 	OSMO_DEPRECATED("Use osmo_stat_item_discard with item-specific next_id instead");
@@ -126,9 +142,10 @@ int osmo_stat_item_for_each_item(struct osmo_stat_item_group *statg,
 
 int osmo_stat_item_for_each_group(osmo_stat_item_group_handler_t handle_group, void *data);
 
+/*! Get the last (freshest) value. Simply returns item->value.last. */
 static inline int32_t osmo_stat_item_get_last(const struct osmo_stat_item *item)
 {
-	return item->values[item->last_offs].value;
+	return item->value.last;
 }
 
 void osmo_stat_item_reset(struct osmo_stat_item *item);
