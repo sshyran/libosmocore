@@ -93,6 +93,10 @@ void osmo_stat_item_inc(struct osmo_stat_item *item, int32_t value);
 void osmo_stat_item_dec(struct osmo_stat_item *item, int32_t value);
 void osmo_stat_item_set(struct osmo_stat_item *item, int32_t value);
 
+struct osmo_stat_item *osmo_stat_item_get(const char *group_name, const unsigned int group_idx, const char *item_name);
+struct osmo_stat_item *osmo_stat_item_get_using_idxname(const char *group_name, const char *group_idx_name,
+							const char *item_name);
+
 int osmo_stat_item_init(void *tall_ctx);
 
 struct osmo_stat_item_group *osmo_stat_item_get_group_by_name_idx(

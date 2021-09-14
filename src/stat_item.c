@@ -231,6 +231,38 @@ void osmo_stat_item_set(struct osmo_stat_item *item, int32_t value)
 	item->values[item->last_offs].id    = id;
 }
 
+/*! Retrieve a stat item struct.
+ * Shorthand for osmo_stat_item_get_by_name(osmo_stat_item_get_group_by_name_idx(group_name, group_idx), item_name),
+ * and returns a mutable (non-const) pointer.
+ * \param group_name  Name of the stat group.
+ * \param group_idx  Group index, i.e. pick a specific instance of a stat group.
+ * \param item_name  Name of the stat item within the group.
+ * \return stat item pointer, or NULL if not found.
+ */
+struct osmo_stat_item *osmo_stat_item_get(const char *group_name, const unsigned int group_idx, const char *item_name)
+{
+	return (struct osmo_stat_item*)osmo_stat_item_get_by_name(
+					osmo_stat_item_get_group_by_name_idx(group_name, group_idx),
+					item_name);
+}
+
+/*! Retrieve a stat item struct.
+ * Shorthand for
+ * osmo_stat_item_get_by_name(osmo_stat_item_get_group_by_name_idxname(group_name, group_idx_name), item_name),
+ * and returns a mutable (non-const) pointer.
+ * \param group_name  Name of the stat group.
+ * \param group_idx_name  Group index identified by name, i.e. pick a specific instance of a stat group.
+ * \param item_name  Name of the stat item within the group.
+ * \return stat item pointer, or NULL if not found.
+ */
+struct osmo_stat_item *osmo_stat_item_get_using_idxname(const char *group_name, const char *group_idx_name,
+							const char *item_name)
+{
+	return (struct osmo_stat_item*)osmo_stat_item_get_by_name(
+					osmo_stat_item_get_group_by_name_idxname(group_name, group_idx_name),
+					item_name);
+}
+
 /*! Retrieve the next value from the osmo_stat_item object.
  * If a new value has been set, it is returned. The next_id is used to decide
  * which value to return.

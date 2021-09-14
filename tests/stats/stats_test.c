@@ -96,6 +96,8 @@ static void stat_test(void)
 
 	OSMO_ASSERT(statg != NULL);
 
+	osmo_stat_item_group_set_name(statg, "name-for-idx-0");
+
 	sgrp2 = osmo_stat_item_get_group_by_name_idx("test.one", 0);
 	OSMO_ASSERT(sgrp2 == statg);
 
@@ -112,10 +114,16 @@ static void stat_test(void)
 	OSMO_ASSERT(sitem1 != NULL);
 	OSMO_ASSERT(sitem1 == osmo_stat_item_group_get_item(statg, TEST_A_ITEM));
 
+	OSMO_ASSERT(osmo_stat_item_get("test.one", 0, "item.a") == sitem1);
+	OSMO_ASSERT(osmo_stat_item_get_using_idxname("test.one", "name-for-idx-0", "item.a") == sitem1);
+
 	sitem2 = osmo_stat_item_get_by_name(statg, "item.b");
 	OSMO_ASSERT(sitem2 != NULL);
 	OSMO_ASSERT(sitem2 != sitem1);
 	OSMO_ASSERT(sitem2 == osmo_stat_item_group_get_item(statg, TEST_B_ITEM));
+
+	OSMO_ASSERT(osmo_stat_item_get("test.one", 0, "item.b") == sitem2);
+	OSMO_ASSERT(osmo_stat_item_get_using_idxname("test.one", "name-for-idx-0", "item.b") == sitem2);
 
 	value = osmo_stat_item_get_last(osmo_stat_item_group_get_item(statg, TEST_A_ITEM));
 	OSMO_ASSERT(value == -1);
