@@ -83,10 +83,23 @@ enum {{prefix}}_fsm_event {
 
 static const struct value_string {{prefix}}_fsm_event_names[] = {
 {% for event in events %}	OSMO_VALUE_STRING({{event.const}}),
-{% endfor %}	{}
+{% endfor %}	{0}
 };
 
 static struct osmo_fsm {{prefix}}_fsm;
+
+static const struct osmo_tdef_state_timeout {{prefix}}_fsm_timeouts[32] = {
+{% for state in states %}	[{{state.const}}] = { .T = 0 },
+{% endfor -%}
+};
+
+/* Transition to a state, using the T timer defined in {{prefix}}_fsm_timeouts.
+ * Assumes local variable fi exists. */
+#define {{prefix}}_fsm_state_chg(state) \\
+	osmo_tdef_fsm_inst_state_chg(fi, state, \\
+				     {{prefix}}_fsm_timeouts, \\
+				     g_tdefs, \\
+				     5)
 
 struct {{priv}} *{{prefix}}_alloc(struct osmo_fsm_inst *parent_fi, uint32_t parent_event_term)
 {
@@ -168,24 +181,19 @@ static __attribute__((constructor)) void {{prefix}}_fsm_register(void)
 
 		return template.render(**vars(s))
 
-fsm = FSM(head='#include <osmocom/bsc/time_cc.h>',
-	  prefix = 'time_cc',
-	  priv = 'time_cc',
+fsm = FSM(prefix = 'pfcp_heartbeat',
+	  priv = 'pfcp_heartbeat',
 	  states = (
-		    State('disabled',
-			  ('false', 'true'),
-			  ('counting_false', 'counting_true',),
+		    State('idle',
+			  (),
+			  ('wait_resp',),
 			  onenter=False,
 			 ),
-		    State('counting_false',
-			  ('false', 'true'),
-			  ('counting_false', 'counting_true', 'disabled'),
-			 ),
-		    State('counting_true',
-			  ('false', 'true'),
-			  ('counting_false', 'counting_true', 'disabled'),
+		    State('wait_resp',
+			  ('rx_resp',),
+			  (),
 			 ),
 		   )
 	 )
-with open('time_cc.c', 'w') as f:
+with open('pfcp_heartbeat_fsm.c', 'w') as f:
 	f.write(fsm.to_c())
