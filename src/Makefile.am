@@ -34,6 +34,7 @@ libosmocore_la_SOURCES = context.c timer.c timer_gettimeofday.c timer_clockgetti
 			 it_q.c \
 			 probes.d \
 			 base64.c \
+			 tlv_parser.c \
 			 $(NULL)
 
 if HAVE_SSSE3

@@ -63,6 +63,7 @@ nobase_include_HEADERS = \
                        osmocom/core/sockaddr_str.h \
                        osmocom/core/time_cc.h \
                        osmocom/core/use_count.h \
+                       osmocom/core/tlv.h \
                        osmocom/crypt/auth.h \
                        osmocom/crypt/gprs_cipher.h \
                        osmocom/crypt/kdf.h \

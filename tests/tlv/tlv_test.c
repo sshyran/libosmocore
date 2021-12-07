@@ -288,6 +288,14 @@ static void test_tlv_repeated_ie()
 	OSMO_ASSERT(dec3[2].lv[tag].val == &test_data[2 + 3 + 3]);
 }
 
+static const struct tlv_definition test_tlvdef = {
+	.def = {
+		[0x17] = { TLV_TYPE_TLV },
+		[0x2c] = { TLV_TYPE_TV },
+		[0x40] = { TLV_TYPE_TV },
+	},
+};
+
 static void test_tlv_encoder()
 {
 	const uint8_t enc_ies[] = {
@@ -312,11 +320,11 @@ static void test_tlv_encoder()
 	OSMO_ASSERT(msg);
 
 	/* decode BSSAP IEs specified above */
-	rc = osmo_bssap_tlv_parse(&tp, enc_ies, ARRAY_SIZE(enc_ies));
+	rc = tlv_parse(&tp, &test_tlvdef, enc_ies, ARRAY_SIZE(enc_ies), 0, 0);
 	OSMO_ASSERT(rc == 3);
 
 	/* re-encode it */
-	rc = tlv_encode(msg, gsm0808_att_tlvdef(), &tp);
+	rc = tlv_encode(msg, &test_tlvdef, &tp);
 	OSMO_ASSERT(rc == ARRAY_SIZE(enc_ies));
 	OSMO_ASSERT(!memcmp(msgb_data(msg), enc_ies, ARRAY_SIZE(enc_ies)));
 
@@ -325,7 +333,7 @@ static void test_tlv_encoder()
 	printf("Testing TLV encoder with IE ordering\n");
 
 	/* re-encodei in different order */
-	rc = tlv_encode_ordered(msg, gsm0808_att_tlvdef(), &tp, ie_order, ARRAY_SIZE(ie_order));
+	rc = tlv_encode_ordered(msg, &test_tlvdef, &tp, ie_order, ARRAY_SIZE(ie_order));
 	OSMO_ASSERT(rc == ARRAY_SIZE(enc_ies));
 	OSMO_ASSERT(!memcmp(msgb_data(msg), enc_ies_reordered, ARRAY_SIZE(enc_ies_reordered)));
 

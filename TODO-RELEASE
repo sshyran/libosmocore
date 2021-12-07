@@ -8,3 +8,4 @@
 # If any interfaces have been removed or changed since the last public release: c:r:0.
 #library	what			description / commit summary line
 libosmogsm      ABI BREAKAGE            CELL_IDENT_WHOLE_GLOBAL_PS changed enum number
+libosmogsm	osmocom/gsm/tlv.h	gsm/tlv.h and gsm/tlv_parser.c moved to libosmocore

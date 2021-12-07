@@ -241,7 +241,7 @@ sim_sim_test_LDADD = $(LDADD) $(top_builddir)/src/sim/libosmosim.la \
 		     $(top_builddir)/src/gsm/libosmogsm.la
 
 tlv_tlv_test_SOURCES = tlv/tlv_test.c
-tlv_tlv_test_LDADD = $(LDADD) $(top_builddir)/src/gsm/libosmogsm.la
+tlv_tlv_test_LDADD = $(LDADD)
 
 gsup_gsup_test_SOURCES = gsup/gsup_test.c
 gsup_gsup_test_LDADD = $(LDADD) $(top_builddir)/src/gsm/libosmogsm.la
