@@ -28,7 +28,7 @@
 #include <osmocom/core/msgb.h>
 #include <osmocom/core/byteswap.h>
 #include <osmocom/core/rate_ctr.h>
-#include <osmocom/gsm/tlv.h>
+#include <osmocom/core/tlv.h>
 #include <osmocom/core/talloc.h>
 #include <osmocom/gprs/gprs_bssgp.h>
 #include <osmocom/gprs/gprs_bssgp_bss.h>

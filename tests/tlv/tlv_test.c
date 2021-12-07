@@ -1,5 +1,5 @@
 #include <osmocom/core/msgb.h>
-#include <osmocom/gsm/tlv.h>
+#include <osmocom/core/tlv.h>
 #include <osmocom/gsm/gsm0808.h>
 
 static void check_tlv_parse(uint8_t **data, size_t *data_len,

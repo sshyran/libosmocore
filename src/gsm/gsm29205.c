@@ -23,7 +23,7 @@
 #include <osmocom/gsm/gsm0808.h>
 #include <osmocom/core/utils.h>
 #include <osmocom/core/msgb.h>
-#include <osmocom/gsm/tlv.h>
+#include <osmocom/core/tlv.h>
 
 #include <errno.h>
 

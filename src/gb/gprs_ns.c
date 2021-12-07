@@ -74,7 +74,7 @@
 #include <osmocom/core/fsm.h>
 #include <osmocom/core/msgb.h>
 #include <osmocom/core/byteswap.h>
-#include <osmocom/gsm/tlv.h>
+#include <osmocom/core/tlv.h>
 #include <osmocom/core/talloc.h>
 #include <osmocom/core/select.h>
 #include <osmocom/core/rate_ctr.h>

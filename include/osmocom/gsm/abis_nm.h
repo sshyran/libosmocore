@@ -1,6 +1,6 @@
 #pragma once
 
-#include <osmocom/gsm/tlv.h>
+#include <osmocom/core/tlv.h>
 #include <osmocom/gsm/gsm_utils.h>
 #include <osmocom/gsm/protocol/gsm_12_21.h>
 

@@ -41,7 +41,7 @@
 #include <osmocom/core/socket.h>
 #include <osmocom/core/stat_item.h>
 #include <osmocom/gsm/prim.h>
-#include <osmocom/gsm/tlv.h>
+#include <osmocom/core/tlv.h>
 #include <osmocom/gprs/gprs_msgb.h>
 #include <osmocom/gprs/protocol/gsm_08_16.h>
 

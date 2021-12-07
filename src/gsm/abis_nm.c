@@ -32,7 +32,7 @@
 
 #include <osmocom/core/utils.h>
 #include <osmocom/core/logging.h>
-#include <osmocom/gsm/tlv.h>
+#include <osmocom/core/tlv.h>
 #include <osmocom/gsm/gsm_utils.h>
 #include <osmocom/gsm/protocol/gsm_12_21.h>
 #include <osmocom/gsm/abis_nm.h>

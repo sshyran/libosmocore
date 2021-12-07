@@ -38,7 +38,7 @@
 #include <osmocom/core/timer.h>
 #include <osmocom/core/msgb.h>
 
-#include <osmocom/gsm/tlv.h>
+#include <osmocom/core/tlv.h>
 
 #define LOGPFRL(frl, lvl, fmt, args ...) \
 	LOGP(DFR, lvl, "%s: " fmt, (frl)->name, ## args)

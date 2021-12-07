@@ -32,7 +32,7 @@
 #include <osmocom/core/rate_ctr.h>
 #include <osmocom/core/stat_item.h>
 #include <osmocom/core/stats.h>
-#include <osmocom/gsm/tlv.h>
+#include <osmocom/core/tlv.h>
 #include <osmocom/gprs/gprs_msgb.h>
 #include <osmocom/gprs/gprs_ns2.h>
 #include <osmocom/gprs/protocol/gsm_08_16.h>

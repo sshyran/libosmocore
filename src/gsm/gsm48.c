@@ -33,7 +33,7 @@
 #include <osmocom/core/bit16gen.h>
 #include <osmocom/core/bit32gen.h>
 #include <osmocom/core/talloc.h>
-#include <osmocom/gsm/tlv.h>
+#include <osmocom/core/tlv.h>
 #include <osmocom/gsm/gsm48.h>
 #include <osmocom/gsm/gsm0502.h>
 #include <osmocom/gsm/gsm_utils.h>

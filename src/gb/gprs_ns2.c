@@ -82,7 +82,7 @@
 #include <osmocom/core/talloc.h>
 #include <osmocom/gprs/gprs_msgb.h>
 #include <osmocom/gsm/prim.h>
-#include <osmocom/gsm/tlv.h>
+#include <osmocom/core/tlv.h>
 
 #include "gprs_ns2_internal.h"
 

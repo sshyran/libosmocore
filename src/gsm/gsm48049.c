@@ -12,7 +12,7 @@
  */
 
 #include <stddef.h>
-#include <osmocom/gsm/tlv.h>
+#include <osmocom/core/tlv.h>
 #include <osmocom/gsm/protocol/gsm_48_049.h>
 
 /***********************************************************************

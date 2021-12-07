@@ -22,7 +22,7 @@
  *
  */
 
-#include <osmocom/gsm/tlv.h>
+#include <osmocom/core/tlv.h>
 #include <osmocom/core/msgb.h>
 #include <osmocom/core/logging.h>
 #include <osmocom/gsm/gsm48_ie.h>

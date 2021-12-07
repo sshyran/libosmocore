@@ -30,7 +30,7 @@
 #include <osmocom/core/msgb.h>
 #include <osmocom/core/talloc.h>
 #include <osmocom/sim/sim.h>
-#include <osmocom/gsm/tlv.h>
+#include <osmocom/core/tlv.h>
 
 
 /* FIXME: this needs to be moved to card_fs_uicc.c */

@@ -28,7 +28,7 @@
 
 #include <osmocom/core/utils.h>
 #include <osmocom/core/msgb.h>
-#include <osmocom/gsm/tlv.h>
+#include <osmocom/core/tlv.h>
 #include <osmocom/gsm/mncc.h>
 #include <osmocom/core/bitvec.h>
 #include <osmocom/gsm/protocol/gsm_04_08.h>

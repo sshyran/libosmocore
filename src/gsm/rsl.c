@@ -23,7 +23,7 @@
 #include <stdio.h>
 #include <errno.h>
 
-#include <osmocom/gsm/tlv.h>
+#include <osmocom/core/tlv.h>
 #include <osmocom/gsm/rsl.h>
 
 /*! \addtogroup rsl

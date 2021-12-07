@@ -40,7 +40,7 @@
 #include <osmocom/core/macaddr.h>
 #include <osmocom/core/select.h>
 
-#include <osmocom/gsm/tlv.h>
+#include <osmocom/core/tlv.h>
 #include <osmocom/gsm/protocol/ipaccess.h>
 #include <osmocom/gsm/ipa.h>
 

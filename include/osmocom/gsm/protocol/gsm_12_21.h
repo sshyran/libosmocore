@@ -22,7 +22,7 @@
 
 #include <stdint.h>
 #include <stdbool.h>
-#include <osmocom/gsm/tlv.h>
+#include <osmocom/core/tlv.h>
 
 /*! generic header in front of every OML message according to TS 08.59 */
 struct abis_om_hdr {

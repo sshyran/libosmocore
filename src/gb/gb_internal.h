@@ -1,7 +1,7 @@
 #pragma once
 
 #include <osmocom/core/msgb.h>
-#include <osmocom/gsm/tlv.h>
+#include <osmocom/core/tlv.h>
 #include <osmocom/gprs/gprs_ns.h>
 
 /* gprs_ns_sns.c */

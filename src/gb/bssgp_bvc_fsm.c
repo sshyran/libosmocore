@@ -30,7 +30,7 @@
 #include <osmocom/core/tdef.h>
 
 #include <osmocom/gsm/gsm48.h>
-#include <osmocom/gsm/tlv.h>
+#include <osmocom/core/tlv.h>
 
 #include <osmocom/gprs/gprs_msgb.h>
 #include <osmocom/gprs/gprs_bssgp.h>

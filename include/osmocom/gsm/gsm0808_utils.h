@@ -30,7 +30,7 @@ struct sockaddr_storage;
 #include <osmocom/gsm/gsm29205.h>
 #include <osmocom/gsm/gsm23003.h>
 #include <osmocom/gsm/gsm_utils.h>
-#include <osmocom/gsm/tlv.h>
+#include <osmocom/core/tlv.h>
 
  /*! (225-1)/2 is the maximum number of elements in a cell identifier list. */
 #define GSM0808_CELL_ID_LIST2_MAXLEN		127

@@ -26,7 +26,7 @@
 #include <osmocom/core/linuxlist.h>
 #include <osmocom/core/msgb.h>
 
-#include <osmocom/gsm/tlv.h>
+#include <osmocom/core/tlv.h>
 #include <osmocom/gsm/cbsp.h>
 #include <osmocom/gsm/gsm0808_utils.h>
 

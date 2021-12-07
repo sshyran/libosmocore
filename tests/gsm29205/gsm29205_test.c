@@ -18,7 +18,7 @@
 #include <osmocom/core/msgb.h>
 #include <osmocom/gsm/protocol/gsm_08_08.h>
 #include <osmocom/gsm/gsm0808.h>
-#include <osmocom/gsm/tlv.h>
+#include <osmocom/core/tlv.h>
 #include <osmocom/core/logging.h>
 #include <osmocom/core/application.h>
 

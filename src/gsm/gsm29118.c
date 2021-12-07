@@ -17,7 +17,7 @@
  */
 
 #include <osmocom/core/utils.h>
-#include <osmocom/gsm/tlv.h>
+#include <osmocom/core/tlv.h>
 
 #include <osmocom/gsm/protocol/gsm_29_118.h>
 #include <osmocom/gsm/gsm29118.h>

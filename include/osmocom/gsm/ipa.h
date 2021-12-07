@@ -5,7 +5,7 @@
 #include <stdint.h>
 
 #include <osmocom/core/msgb.h>
-#include <osmocom/gsm/tlv.h>
+#include <osmocom/core/tlv.h>
 
 struct osmo_fd;
 

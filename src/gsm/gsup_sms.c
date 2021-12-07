@@ -26,7 +26,7 @@
 #include <osmocom/core/msgb.h>
 
 #include <osmocom/gsm/gsup.h>
-#include <osmocom/gsm/tlv.h>
+#include <osmocom/core/tlv.h>
 
 /*! \addtogroup gsup
  *  @{

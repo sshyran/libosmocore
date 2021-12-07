@@ -22,7 +22,7 @@
 
 #include <osmocom/sim/sim.h>
 #include <osmocom/core/talloc.h>
-#include <osmocom/gsm/tlv.h>
+#include <osmocom/core/tlv.h>
 
 #include "sim_int.h"
 #include "gsm_int.h"

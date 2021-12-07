@@ -47,7 +47,7 @@
 #include <osmocom/core/msgb.h>
 #include <osmocom/core/socket.h>
 #include <osmocom/core/sockaddr_str.h>
-#include <osmocom/gsm/tlv.h>
+#include <osmocom/core/tlv.h>
 #include <osmocom/gprs/gprs_msgb.h>
 #include <osmocom/gprs/gprs_ns2.h>
 #include <osmocom/gprs/protocol/gsm_08_16.h>

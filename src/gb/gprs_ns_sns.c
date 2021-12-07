@@ -15,7 +15,7 @@
 #include <osmocom/core/msgb.h>
 #include <osmocom/core/signal.h>
 #include <osmocom/core/socket.h>
-#include <osmocom/gsm/tlv.h>
+#include <osmocom/core/tlv.h>
 #include <osmocom/gprs/gprs_msgb.h>
 #include <osmocom/gprs/gprs_ns.h>
 

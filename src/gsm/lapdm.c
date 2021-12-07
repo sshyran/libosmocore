@@ -35,7 +35,7 @@
 #include <osmocom/core/msgb.h>
 #include <osmocom/core/utils.h>
 
-#include <osmocom/gsm/tlv.h>
+#include <osmocom/core/tlv.h>
 #include <osmocom/gsm/rsl.h>
 #include <osmocom/gsm/prim.h>
 #include <osmocom/gsm/gsm_utils.h>

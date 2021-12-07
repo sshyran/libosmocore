@@ -56,7 +56,7 @@
 #include <osmocom/core/msgb.h>
 #include <osmocom/core/logging.h>
 #include <osmocom/core/timer.h>
-#include <osmocom/gsm/tlv.h>
+#include <osmocom/core/tlv.h>
 
 #include <osmocom/gsm/gsm0411_utils.h>
 #include <osmocom/gsm/gsm0411_smc.h>

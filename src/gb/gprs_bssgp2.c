@@ -26,7 +26,7 @@
 #include <osmocom/core/msgb.h>
 
 #include <osmocom/gsm/gsm48.h>
-#include <osmocom/gsm/tlv.h>
+#include <osmocom/core/tlv.h>
 
 #include <osmocom/gprs/gprs_ns2.h>
 #include <osmocom/gprs/gprs_bssgp.h>

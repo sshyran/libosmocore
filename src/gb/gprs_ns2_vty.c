@@ -43,7 +43,7 @@
 #include <osmocom/core/socket.h>
 #include <osmocom/gprs/frame_relay.h>
 #include <osmocom/gprs/gprs_ns2.h>
-#include <osmocom/gsm/tlv.h>
+#include <osmocom/core/tlv.h>
 #include <osmocom/vty/command.h>
 #include <osmocom/vty/logging.h>
 #include <osmocom/vty/misc.h>
