@@ -181,19 +181,25 @@ static __attribute__((constructor)) void {{prefix}}_fsm_register(void)
 
 		return template.render(**vars(s))
 
-fsm = FSM(prefix = 'pfcp_heartbeat',
-	  priv = 'pfcp_heartbeat',
+fsm = FSM(prefix = 'up_peer',
+	  priv = 'up_peer',
 	  states = (
-		    State('idle',
-			  (),
-			  ('wait_resp',),
+		    State('not_associated',
+			  ('rx_assoc_setup_req',),
+			  ('associated',),
 			  onenter=False,
 			 ),
-		    State('wait_resp',
-			  ('rx_resp',),
+		    State('associated',
+			  ('rx_assoc_upd_req',
+			   'rx_session_est_req',
+			   'heartbeat_failure',),
+			  ('graceful_release'),
+			 ),
+		    State('graceful_release',
+			  ('heartbeat_failure',),
 			  (),
 			 ),
 		   )
 	 )
-with open('pfcp_heartbeat_fsm.c', 'w') as f:
+with open('up_peer_fsm.c', 'w') as f:
 	f.write(fsm.to_c())
