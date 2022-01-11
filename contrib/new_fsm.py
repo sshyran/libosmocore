@@ -181,25 +181,19 @@ static __attribute__((constructor)) void {{prefix}}_fsm_register(void)
 
 		return template.render(**vars(s))
 
-fsm = FSM(prefix = 'up_peer',
-	  priv = 'up_peer',
+fsm = FSM(prefix = 'up_session',
+	  priv = 'up_session',
 	  states = (
-		    State('not_associated',
-			  ('rx_assoc_setup_req',),
-			  ('associated',),
+		    State('established',
+			  ('rx_session_mod_req', 'rx_session_del_req',),
+			  ('wait_use_count', ),
 			  onenter=False,
 			 ),
-		    State('associated',
-			  ('rx_assoc_upd_req',
-			   'rx_session_est_req',
-			   'heartbeat_failure',),
-			  ('graceful_release'),
-			 ),
-		    State('graceful_release',
-			  ('heartbeat_failure',),
+		    State('wait_use_count',
+			  ('use_count_zero'),
 			  (),
 			 ),
 		   )
 	 )
-with open('up_peer_fsm.c', 'w') as f:
+with open('up_session_fsm.c', 'w') as f:
 	f.write(fsm.to_c())
