@@ -52,6 +52,11 @@ foo	<=	bar
 foo	><-	bar
 *	<	bar
 
+foo	<->	bar
+foo	<-->	bar
+foo	<~>	bar
+foo	<=>	bar
+
 foo	<>	.	angled box
 foo	()	.	rounded box
 foo	[]	.	note
