@@ -1588,8 +1588,96 @@ int gsm0808_speech_codec_from_chan_type(struct gsm0808_speech_codec *sc,
 	return 0;
 }
 
-/*! Determine a set of AMR speech codec configuration bits (S0-S15) from a
- *  given GSM 04.08 AMR configuration struct.
+/*! Determine a set of AMR speech codec configuration bits (S0-S15) from a given set of AMR modes.
+ * Enable each of the S0..S15 bits that is a subset of the given modes.
+ * In other words, there must be no S0..S15 bit enabled that includes a mode that is disabled in modes.
+ * See 3GPP TS 28.062 Table 7.11.3.1.3-2, where each column defines one of the S0..S15 bits.
+ * The bits in 'modes' are a binary match for the mX_XX flags in struct gsm48_multi_rate_conf.mX_XX.
+ *
+ * Example:
+ *   uint8_t modes = gsm48_multi_rate_conf_get_modes(my_cfg);
+ *   uint16_t s15_s0 = gsm0808_sc_cfg_from_modes(modes, full_rate);
+ *
+ * \param[in] modes  Set of modes, bitmask of (1 << GSM0808_AMR_MODE_4_75) | (1 << GSM0808_AMR_MODE_5_90) | ...
+ * \param[in] full_rate  When false, apply special HR AMR exceptions.
+ * \returns configuration bits (S0-S15) */
+uint16_t gsm0808_sc_cfg_from_modes(uint8_t modes, bool full_rate)
+{
+	uint16_t s15_s0 = 0;
+	int s_bit;
+
+	for (s_bit = 0; s_bit < 16; s_bit++) {
+		uint8_t s_modes = gsm0808_amr_modes_from_cfg[full_rate ? 1 : 0][s_bit];
+		/* When s_modes is a non-zero subset of cfg_modes, add this configuration to s15_s0. */
+		if (s_modes && ((s_modes & modes) == s_modes))
+			s15_s0 |= (1 << s_bit);
+	}
+	return s15_s0;
+}
+
+/*! Return all AMR modes present in any of the given s15_s0 configurations.
+ * The returned bits are a binary match for the mX_XX flags in struct gsm48_multi_rate_conf.mX_XX.
+ *
+ * Example:
+ *   uint8_t modes = gsm0808_sc_cfg_get_all_modes(s15_s0, full_rate);
+ *   gsm48_multi_rate_conf_set_modes(&my_cfg, modes);
+ *
+ * \param[in] s15_s0  S15-S0 configuration bits, see gsm0808_amr_modes_from_cfg.
+ * \param[in] full_rate  When false, return only modes compatible with HR AMR, and only observe Sn bits marked as
+ *                       supported by HR AMR, as in gsm0808_amr_modes_from_cfg.
+ * \return Bitmask of modes present in s15_s0, as in (1 << GSM0808_AMR_MODE_X_XX).
+ */
+uint8_t gsm0808_sc_cfg_get_all_modes(uint16_t s15_s0, bool full_rate)
+{
+	uint8_t modes = 0;
+	int s_bit;
+	for (s_bit = 0; s_bit < 16; s_bit++) {
+		if (!(s15_s0 & s_bit))
+			continue;
+		modes |= gsm0808_amr_modes_from_cfg[full_rate ? 1 : 0][s_bit];
+	}
+	return modes;
+}
+
+/*! Return "the best choice" of at most four AMR modes present in the given s15_s0 configurations.
+ * This is useful to determine which four modes to send in the MR CFG IE during GSM channel activation.
+ *
+ * "The best choice": return the modes for the highest bit present in s15_s0 (that is supported / is non-empty), with
+ * the exception: favor S1 over S0, S2..S9 -- S1 has a more favorable variety of rates than the latter ones.
+ *
+ * Apply limitations of GSM, according to full_rate; see gsm0808_amr_modes_from_cfg for an explanation.
+ *
+ * Example:
+ *   uint8_t modes = gsm0808_sc_cfg_get_four_modes(s15_s0, full_rate);
+ *   gsm48_multi_rate_conf_set_modes(&my_cfg, modes);
+ *
+ * \param[in] s15_s0  S15-S0 configuration bits, see gsm0808_amr_modes_from_cfg.
+ * \param[in] full_rate  When false, return only modes compatible with HR AMR, and only observe Sn bits marked as
+ *                       supported by HR AMR, as in gsm0808_amr_modes_from_cfg.
+ * \return Bitmask of modes chosen from s15_s0, as in (1 << GSM0808_AMR_MODE_X_XX).
+ */
+uint8_t gsm0808_sc_cfg_get_best_modes(uint16_t s15_s0, bool full_rate)
+{
+	const int s_bit_preference[] = { 15, 14, 13, 12, 11, 10,  1,  9, 8, 7, 6, 5, 4, 3, 2,  0 };
+	int i;
+	uint8_t modes = 0;
+	for (i = 0; (!modes) && (i < ARRAY_SIZE(s_bit_preference)); i++) {
+		int s_bit = s_bit_preference[i];
+		if (!(s15_s0 & s_bit))
+			continue;
+		modes = gsm0808_amr_modes_from_cfg[full_rate ? 1 : 0][s_bit];
+	}
+	return modes;
+}
+
+/*! Deprecated, use gsm0808_sc_cfg_from_modes(); The following code is an equivalent replacement for a call to
+ * s15_s0 = gsm0808_sc_cfg_from_gsm48_mr_cfg(cfg, fr):
+ *
+ *     s15_s0 = gsm0808_sc_cfg_from_modes(gsm48_multi_rate_conf_get_modes(cfg), fr);
+ *
+ * Determine a set of AMR speech codec configuration bits (S0-S15) from a given GSM 04.08 AMR configuration struct.
+ * Enable all those AMR configurations where at least one of its AMR rates is enabled in cfg.
+ * This is usually undesired behavior, use gsm0808_sc_cfg_from_modes() instead.
  *  \param[in] cfg AMR configuration in GSM 04.08 format.
  *  \param[in] hint if the resulting configuration shall be used with a FR or HR TCH.
  *  \returns configuration bits (S0-S15) */
@@ -1641,7 +1729,13 @@ uint16_t gsm0808_sc_cfg_from_gsm48_mr_cfg(const struct gsm48_multi_rate_conf *cf
 	return s15_s0;
 }
 
-/*! Determine a GSM 04.08 AMR configuration struct from a set of speech codec
+/*! Deprecated, use gsm0808_sc_cfg_get_best_modes(); The following code is an equivalent replacement for a call to
+ * gsm0808_sc_cfg_get_best_modes(cfg, s15_s0):
+ *
+ *     *cfg = (struct gsm48_multi_rate_conf){ .ver = 1, .icmi = 1 };
+ *     gsm48_multi_rate_conf_set_modes(cfg, gsm0808_sc_cfg_get_best_modes(s15_s0, true));
+ *
+ *  Determine a GSM 04.08 AMR configuration struct from a set of speech codec
  *  configuration bits (S0-S15)
  *  \param[out] cfg AMR configuration in GSM 04.08 format.
  *  \param[in] s15_s0 configuration bits (S15-S0, non-ambiguous).

@@ -7,3 +7,5 @@
 # If any interfaces have been added since the last public release: c:r:a + 1.
 # If any interfaces have been removed or changed since the last public release: c:r:0.
 #library	what			description / commit summary line
+libosmogsm	gsm0808_sc_cfg_from_gsm48_mr_cfg()	Deprecate; replacement is gsm0808_sc_cfg_from_modes().
+libosmogsm	gsm48_mr_cfg_from_gsm0808_sc_cfg()	Deprecate; replacement is gsm0808_sc_cfg_get_best_modes().
