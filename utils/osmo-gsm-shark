@@ -3541,6 +3541,7 @@ def parse_args():
 		help='Show only messages matching this messagefilter')
 	parser.add_argument('--show-traits', default=None)
 	parser.add_argument('--show-conns', default=None, help="'all' for all, or specific conn names (comma separated)")
+	parser.add_argument('--collapse-stp', '-s', default=None, help="BSSAP via STP may appear duplicated. '-s1' collapses the duplicates, -s0 does not.")
 	parser.add_argument('--test', action='store_true')
 	parser.add_argument('--debug', metavar='messagefilter',
 		help='Show a lot more info on messages matching this messagefilter')
@@ -3552,6 +3553,10 @@ def main():
 	if opts.test:
 		run_tests()
 	else:
+		if (opts.collapse_stp or '').upper() in ['1', 'Y', 'YES', 'TRUE']:
+			SCCP_COLLAPSE_STP = True
+		if (opts.collapse_stp or '').upper() in ['0', 'N', 'NO', 'FALSE']:
+			SCCP_COLLAPSE_STP = False
 		ui_class = None
 		ui_type = opts.ui or 'none'
 		if 'plain'.startswith(ui_type):
